@@ -36,9 +36,14 @@ public:
     {
         CharFrequencies frequencies{0};
         CalculateFrequencies(first, last, frequencies);
-        const auto leafs = fillNodes(frequencies);
-        buildTree(leafs);
-        buildHuffmanDictFromTree(huffmanDict_, leafs);
+        for(std::size_t i = 0; i < frequencies.size(); ++i) {
+            if(frequencies.at(i) > 0) {
+                qDebug() << "Char: '" << (char)i << "' = " << frequencies.at(i);
+            }
+        }
+//        const auto leafs = fillNodes(frequencies);
+//        buildTree(leafs);
+//        buildHuffmanDictFromTree(huffmanDict_, leafs);
     }
 
     void setStream(std::istream& stream);

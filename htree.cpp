@@ -107,6 +107,8 @@ HTree::NodeIDs HTree::fillNodes(const CharFrequencies& frequencies)
 
 void HTree::buildTree(const NodeIDs& leafs)
 {
+    assert(!leafs.empty());
+
     const auto comp = [this](const int left, const int right) {
         return getNode(left).weight > getNode(right).weight;
     };

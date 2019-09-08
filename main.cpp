@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include <QApplication>
 
@@ -78,6 +79,9 @@ void write(std::ostream& outputStream, const T& data) { outputStream.write(reint
 template<class T>
 void read(std::istream& inputStream, T& val) { inputStream.read(reinterpret_cast<char*>(&val), sizeof(T)); }
 
+std::uint8_t setbit(const std::uint8_t value, const std::uint8_t position) { return (value | (1 << position)); }
+bool getbit(const std::uint8_t value, const std::uint8_t position) { return (value & (1 << position)) != 0; }
+
 void write_header(const HuffmanDict& dict, std::ostream& outputStream)
 {
     // writing header
@@ -89,11 +93,11 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
     };
 
     // writing count entries
-    const auto countEntries = static_cast<std::uint32_t>(std::count_if(std::cbegin(dict), std::cend(dict), hasCode));
+    const auto countEntries = static_cast<std::uint16_t>(std::count_if(std::cbegin(dict), std::cend(dict), hasCode));
     write(outputStream, countEntries);
 
     const auto posOfOffset = outputStream.tellp();
-    outputStream.seekp(posOfOffset + static_cast<std::ostream::off_type>(sizeof(std::uint16_t)));
+    outputStream.seekp(posOfOffset + std::ostream::off_type(2));
 
     // writing entries
     for(std::size_t byteIndex = 0; byteIndex < dict.size(); ++byteIndex)
@@ -113,6 +117,38 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
         write(outputStream, entry);
     }
 
+    qDebug() << outputStream.tellp();
+
+//    BitsBuffer bits;
+//    for(const auto& symbolCode : dict)
+//    {
+//        if(symbolCode.empty()) {
+//            continue;
+//        }
+
+//        for(bool codeBit : symbolCode)
+//        {
+//            bits.push_back(codeBit);
+//        }
+//    }
+
+//    print(bits);
+//    std::cout << std::endl;
+
+//    int bitIndex = 0;
+//    std::uint8_t byteOfCode = 0;
+//    for(bool bit : bits) {
+//        byteOfCode |= (bit << (8 - bitIndex - 1));
+//        ++bitIndex;
+//        if(bitIndex >= 8) {
+//            write(outputStream, byteOfCode);
+//            byteOfCode = 0;
+//            bitIndex = 0;
+//        }
+//    }
+
+
+
     // writing bits
     constexpr int bitsInByte = 8;
     int bitIndex = 0;
@@ -125,14 +161,14 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
 
         for(bool codeBit : symbolCode)
         {
-            if(bitIndex > bitsInByte) {
+            byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
+            ++bitIndex;
+
+            if(bitIndex >= bitsInByte) {
                 write(outputStream, byteOfCode);
                 byteOfCode = 0;
                 bitIndex = 0;
             }
-
-            byteOfCode |= codeBit >> bitIndex;
-            ++bitIndex;
         }
     }
 
@@ -143,7 +179,8 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
     const auto dataOffset = outputStream.tellp();
     outputStream.clear();
     outputStream.seekp(posOfOffset);
-    write(outputStream, static_cast<std::uint16_t>(dataOffset));
+    const auto offset = static_cast<std::uint16_t>(dataOffset);
+    write(outputStream, offset);
 
     outputStream.clear();
     outputStream.seekp(dataOffset);
@@ -162,10 +199,24 @@ void read_header(std::istream& inputStream, HuffmanDict& dict)
         read(inputStream, entries.back());
     }
 
-    //std::copy_n(std::istream_iterator<SymbolEntry>(inputStream), header.count, std::back_inserter(entries));
-
     // reading bits
+    qDebug() << inputStream.tellg();
+    constexpr int bitsInByte = 8;
+    BitsBuffer bits;
+    while(inputStream /*&& inputStream.tellg() < header.offset*/) {
+        std::uint8_t currentByte = 0;
+        read(inputStream, currentByte);
+        for(int bitIndex = 0; bitIndex < bitsInByte; ++bitIndex) {
+            bits.push_back(getbit(currentByte, bitsInByte - bitIndex - 1) /*currentByte & (1 << bitIndex)*/);
+        }
+    }
 
+    auto it = std::cbegin(bits);
+    for(const auto& entry : entries) {
+        auto& currBitCode = dict.at(entry.symbol);
+        std::copy_n(it, entry.count, std::back_inserter(currBitCode));
+        it += entry.count;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -182,6 +233,7 @@ int main(int argc, char *argv[])
 
     HTree tree;
     tree.setStream(ifs);
+    ifs.close();
 
     const auto huffmanCodes = tree.huffmanDict();
 
@@ -195,6 +247,26 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     }
 
+    std::ofstream ofs("D:\\USER\\Documents\\test_huffman.txt");
+    write_header(huffmanCodes, ofs);
+    ofs.close();
+
+    HuffmanDict newHuffmanCodes;
+    std::ifstream newifs("D:\\USER\\Documents\\test_huffman.txt");
+    read_header(newifs, newHuffmanCodes);
+    newifs.close();
+
+    // print huffman codes
+    for(std::size_t signByte = 0; signByte < newHuffmanCodes.size(); ++signByte) {
+        const auto& bitCode = newHuffmanCodes.at(signByte);
+        if(bitCode.empty()) continue;
+
+        std::cout << "'" << static_cast<char>(signByte) << "' = ";
+        print(bitCode);
+        std::cout << std::endl;
+    }
+
+/*
     HTree newTree;
     newTree.setHuffmanDict(huffmanCodes);
 
@@ -212,6 +284,6 @@ int main(int argc, char *argv[])
     std::cout << "Decoded(size: " << bytes.size() << " bytes): ";
     print(bytes);
     std::cout << std::endl;
-
+*/
     return a.exec();
 }
