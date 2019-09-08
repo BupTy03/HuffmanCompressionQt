@@ -117,38 +117,6 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
         write(outputStream, entry);
     }
 
-    qDebug() << outputStream.tellp();
-
-//    BitsBuffer bits;
-//    for(const auto& symbolCode : dict)
-//    {
-//        if(symbolCode.empty()) {
-//            continue;
-//        }
-
-//        for(bool codeBit : symbolCode)
-//        {
-//            bits.push_back(codeBit);
-//        }
-//    }
-
-//    print(bits);
-//    std::cout << std::endl;
-
-//    int bitIndex = 0;
-//    std::uint8_t byteOfCode = 0;
-//    for(bool bit : bits) {
-//        byteOfCode |= (bit << (8 - bitIndex - 1));
-//        ++bitIndex;
-//        if(bitIndex >= 8) {
-//            write(outputStream, byteOfCode);
-//            byteOfCode = 0;
-//            bitIndex = 0;
-//        }
-//    }
-
-
-
     // writing bits
     constexpr int bitsInByte = 8;
     int bitIndex = 0;
@@ -186,6 +154,46 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
     outputStream.seekp(dataOffset);
 }
 
+void write_data(std::istream& inputStream, std::ostream& outputStream, const HTree& tree)
+{
+    BytesBuffer buff;
+    while (inputStream) {
+        std::uint8_t currByte = 0;
+        read(inputStream, currByte);
+        buff.push_back(currByte);
+    }
+
+    const auto bitsBuffer = tree.encodeBytes(buff);
+
+    const auto pos = outputStream.tellp();
+    outputStream.seekp(pos + std::ostream::off_type(1));
+
+    // writing bits
+    constexpr int bitsInByte = 8;
+    int bitIndex = 0;
+    std::uint8_t byteOfCode = 0;
+    for(bool codeBit : bitsBuffer)
+    {
+        byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
+        ++bitIndex;
+
+        if(bitIndex >= bitsInByte) {
+            write(outputStream, byteOfCode);
+            byteOfCode = 0;
+            bitIndex = 0;
+        }
+    }
+
+    if(bitIndex < 8) {
+        write(outputStream, byteOfCode);
+    }
+
+    const auto offset = static_cast<std::uint8_t>(bitsInByte - bitIndex);
+    outputStream.clear();
+    outputStream.seekp(pos);
+    write(outputStream, offset);
+}
+
 void read_header(std::istream& inputStream, HuffmanDict& dict)
 {
     // reading header
@@ -200,14 +208,13 @@ void read_header(std::istream& inputStream, HuffmanDict& dict)
     }
 
     // reading bits
-    qDebug() << inputStream.tellg();
     constexpr int bitsInByte = 8;
     BitsBuffer bits;
-    while(inputStream /*&& inputStream.tellg() < header.offset*/) {
+    while(inputStream && inputStream.tellg() < header.offset) {
         std::uint8_t currentByte = 0;
         read(inputStream, currentByte);
         for(int bitIndex = 0; bitIndex < bitsInByte; ++bitIndex) {
-            bits.push_back(getbit(currentByte, bitsInByte - bitIndex - 1) /*currentByte & (1 << bitIndex)*/);
+            bits.push_back(currentByte & (1 << (bitsInByte - bitIndex - 1)));
         }
     }
 

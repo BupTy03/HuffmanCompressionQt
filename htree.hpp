@@ -49,7 +49,11 @@ public:
     void setStream(std::istream& stream);
     void setHuffmanDict(const HuffmanDict& dict);
 
-    BytesBuffer decodeBits(const BitsBuffer& bitsBuffer);
+    BitsBuffer encodeBytes(const BytesBuffer& bytesBuffer) const;
+    BytesBuffer decodeBits(const BitsBuffer& bitsBuffer) const;
+
+    void compress(std::istream& from, std::ostream& to);
+    void decompress(std::istream& from, std::ostream& to);
 
 private:
     template<class It>
