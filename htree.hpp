@@ -9,11 +9,11 @@
 using BytesBuffer = std::vector<std::uint8_t>;
 using BitsBuffer = std::vector<bool>;
 using HuffmanDict = std::array<BitsBuffer, 256>;
-using CharFrequencies = std::array<int, 256>;
+using CharFrequencies = std::array<std::size_t, 256>;
 
 struct HTreeNode
 {
-    int weight = 0;
+    std::size_t weight = 0;
     std::uint8_t sign = 0;
     int leftNodeID = -1;
     int rightNodeID = -1;
@@ -41,7 +41,10 @@ public:
         buildHuffmanDictFromTree(huffmanDict_, leafs);
     }
 
-    void setStream(std::istream &stream);
+    void setStream(std::istream& stream);
+    void setHuffmanDict(const HuffmanDict& dict);
+
+    BytesBuffer decodeBits(const BitsBuffer& bitsBuffer);
 
 private:
     template<class It>
@@ -52,14 +55,22 @@ private:
         }
     }
 
-    int makeNode() { nodes_.emplace_back(); return static_cast<int>(nodes_.size() - 1); }
+    int makeNode();
+    int makeNode(int parentID);
+    int makeLeftNode(int parentID);
+    int makeRightNode(int parentID);
+
     Node& getNode(int nodeID) { return nodes_.at(static_cast<std::size_t>(nodeID)); }
+    const Node& getNode(int nodeID) const { return nodes_.at(static_cast<std::size_t>(nodeID)); }
     NodeIDs fillNodes(const CharFrequencies& frequencies);
+    void clearNodes() { nodes_.clear(); }
+
     void buildTree(const NodeIDs& freeNodes);
     void buildHuffmanDictFromTree(HuffmanDict& dict, const NodeIDs& leafs);
 
 private:
     Nodes nodes_;
+    int rootID_ = 0;
     HuffmanDict huffmanDict_;
 };
 
