@@ -176,7 +176,6 @@ void write_data(std::istream& inputStream, std::ostream& outputStream, const HTr
     {
         byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
         ++bitIndex;
-
         if(bitIndex >= bitsInByte) {
             write(outputStream, byteOfCode);
             byteOfCode = 0;
@@ -184,11 +183,11 @@ void write_data(std::istream& inputStream, std::ostream& outputStream, const HTr
         }
     }
 
-    if(bitIndex < 8) {
+    if(bitIndex != 0) {
         write(outputStream, byteOfCode);
     }
 
-    const auto offset = static_cast<std::uint8_t>(bitsInByte - bitIndex);
+    const auto offset = static_cast<std::uint8_t>(8 - (bitsBuffer.size() % 8));
     outputStream.clear();
     outputStream.seekp(pos);
     write(outputStream, offset);
@@ -226,6 +225,32 @@ void read_header(std::istream& inputStream, HuffmanDict& dict)
     }
 }
 
+void read_data(std::istream& inputStream, std::ostream& outputStream, const HTree& tree)
+{
+    std::uint8_t offset = 0;
+    read(inputStream, offset);
+
+    constexpr int bitsInByte = 8;
+    BitsBuffer bits;
+    while(inputStream) {
+        std::uint8_t currentByte = 0;
+        read(inputStream, currentByte);
+        for(int bitIndex = 0; bitIndex < bitsInByte; ++bitIndex) {
+            bits.push_back(currentByte & (1 << (bitsInByte - bitIndex - 1)));
+        }
+    }
+
+    print(bits);
+    std::cout << std::endl;
+
+    bits.erase(std::cend(bits) - offset, std::cend(bits));
+
+    const auto bytes = tree.decodeBits(bits);
+    for(const auto currByte : bytes) {
+        write(outputStream, currByte);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -240,7 +265,7 @@ int main(int argc, char *argv[])
 
     HTree tree;
     tree.setStream(ifs);
-    ifs.close();
+    //ifs.close();
 
     const auto huffmanCodes = tree.huffmanDict();
 
@@ -256,12 +281,22 @@ int main(int argc, char *argv[])
 
     std::ofstream ofs("D:\\USER\\Documents\\test_huffman.txt");
     write_header(huffmanCodes, ofs);
+    ifs.clear();
+    ifs.seekg(0);
+    write_data(ifs, ofs, tree);
+    ifs.close();
     ofs.close();
 
     HuffmanDict newHuffmanCodes;
     std::ifstream newifs("D:\\USER\\Documents\\test_huffman.txt");
     read_header(newifs, newHuffmanCodes);
+    HTree newTree;
+    newTree.setHuffmanDict(huffmanCodes);
+
+    std::ofstream newofs("D:\\USER\\Documents\\text_copy.txt");
+    read_data(newifs, newofs, newTree);
     newifs.close();
+    newofs.close();
 
     // print huffman codes
     for(std::size_t signByte = 0; signByte < newHuffmanCodes.size(); ++signByte) {
