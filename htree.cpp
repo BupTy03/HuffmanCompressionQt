@@ -7,10 +7,10 @@
 void HTree::setStream(std::istream& stream)
 {
     CharFrequencies frequencies{0};
-    while (stream) { // calculating frequencies
+    while (true) { // calculating frequencies
         std::uint8_t byteChunk = 0;
         stream.read(reinterpret_cast<char*>(&byteChunk), sizeof(byteChunk));
-        if(!stream) {
+        if(stream.eof()) {
             break;
         }
         ++frequencies.at(byteChunk);

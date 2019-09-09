@@ -7,15 +7,13 @@
 
 #include <QApplication>
 
-struct HuffmanHeader
-{
+struct HuffmanHeader {
     std::uint8_t header[4]{'\0'}; // заголовок "HAFF"
     std::uint16_t count = 0;      // кол-во записей SymbolEntry
     std::uint16_t offset = 0;     // оффсет до data
 };
 
-struct SymbolEntry
-{
+struct SymbolEntry {
     std::uint8_t symbol = 0;    // символ (байт)
     std::uint8_t count = 0;     // кол-во бит кода символа
 };
@@ -79,9 +77,6 @@ void write(std::ostream& outputStream, const T& data) { outputStream.write(reint
 template<class T>
 void read(std::istream& inputStream, T& val) { inputStream.read(reinterpret_cast<char*>(&val), sizeof(T)); }
 
-std::uint8_t setbit(const std::uint8_t value, const std::uint8_t position) { return (value | (1 << position)); }
-bool getbit(const std::uint8_t value, const std::uint8_t position) { return (value & (1 << position)) != 0; }
-
 void write_header(const HuffmanDict& dict, std::ostream& outputStream)
 {
     // writing header
@@ -100,8 +95,7 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
     outputStream.seekp(posOfOffset + std::ostream::off_type(2));
 
     // writing entries
-    for(std::size_t byteIndex = 0; byteIndex < dict.size(); ++byteIndex)
-    {
+    for(std::size_t byteIndex = 0; byteIndex < dict.size(); ++byteIndex) {
         const auto& codeBits = dict.at(byteIndex);
         assert(codeBits.size() <= std::numeric_limits<std::uint8_t>::max());
 
@@ -121,14 +115,12 @@ void write_header(const HuffmanDict& dict, std::ostream& outputStream)
     constexpr int bitsInByte = 8;
     int bitIndex = 0;
     std::uint8_t byteOfCode = 0;
-    for(const auto& symbolCode : dict)
-    {
+    for(const auto& symbolCode : dict) {
         if(symbolCode.empty()) {
             continue;
         }
 
-        for(bool codeBit : symbolCode)
-        {
+        for(bool codeBit : symbolCode) {
             byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
             ++bitIndex;
 
@@ -170,10 +162,9 @@ void write_data(std::istream& inputStream, std::ostream& outputStream, const HTr
 
     // writing bits
     constexpr int bitsInByte = 8;
-    int bitIndex = 0;
+    std::uint8_t bitIndex = 0;
     std::uint8_t byteOfCode = 0;
-    for(bool codeBit : bitsBuffer)
-    {
+    for(bool codeBit : bitsBuffer) {
         byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
         ++bitIndex;
         if(bitIndex >= bitsInByte) {
@@ -183,11 +174,11 @@ void write_data(std::istream& inputStream, std::ostream& outputStream, const HTr
         }
     }
 
-    if(bitIndex != 0) {
+    if(bitIndex > 0) {
         write(outputStream, byteOfCode);
     }
 
-    const auto offset = static_cast<std::uint8_t>(8 - (bitsBuffer.size() % 8));
+    const auto offset = static_cast<std::uint8_t>(bitsInByte - bitIndex);
     outputStream.clear();
     outputStream.seekp(pos);
     write(outputStream, offset);
@@ -232,9 +223,13 @@ void read_data(std::istream& inputStream, std::ostream& outputStream, const HTre
 
     constexpr int bitsInByte = 8;
     BitsBuffer bits;
-    while(inputStream) {
+    while(true) {
         std::uint8_t currentByte = 0;
         read(inputStream, currentByte);
+        if(inputStream.eof()) {
+            break;
+        }
+
         for(int bitIndex = 0; bitIndex < bitsInByte; ++bitIndex) {
             bits.push_back(currentByte & (1 << (bitsInByte - bitIndex - 1)));
         }
