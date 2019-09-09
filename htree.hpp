@@ -32,7 +32,7 @@ public:
     const HuffmanDict& huffmanDict() const { return huffmanDict_; }
     HuffmanDict& huffmanDict() { return huffmanDict_; }
 
-    void setStream(std::istream& stream);
+    void setStream(std::istream& inputStream);
     void setHuffmanDict(const HuffmanDict& dict);
 
     BitsBuffer encodeBytes(const BytesBuffer& bytesBuffer) const;

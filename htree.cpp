@@ -4,18 +4,17 @@
 #include <cassert>
 #include <queue>
 
-void HTree::setStream(std::istream& stream)
+void HTree::setStream(std::istream& inputStream)
 {
+    // calculating frequencies
     CharFrequencies frequencies{0};
-    while (true) { // calculating frequencies
-        std::uint8_t byteChunk = 0;
-        stream.read(reinterpret_cast<char*>(&byteChunk), sizeof(byteChunk));
-        if(stream.eof()) {
-            break;
-        }
-        ++frequencies.at(byteChunk);
-    }
+    inputStream.unsetf(std::ios::skipws);
+    std::for_each(std::istream_iterator<std::uint8_t>(inputStream), std::istream_iterator<std::uint8_t>(),
+    [&frequencies](const std::uint8_t currByte){
+        ++frequencies.at(currByte);
+    });
 
+    // building tree
     const auto leafs = fillNodes(frequencies);
     buildTree(leafs);
     buildHuffmanDictFromTree(huffmanDict_, leafs);

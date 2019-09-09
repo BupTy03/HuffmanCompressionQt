@@ -42,7 +42,6 @@ void write_header(const HTree& tree, std::ostream& outputStream)
     }
 
     // writing bits
-    constexpr int bitsInByte = 8;
     std::uint8_t bitIndex = 0;
     std::uint8_t byteOfCode = 0;
     for(const auto& symbolCode : dict) {
@@ -51,10 +50,10 @@ void write_header(const HTree& tree, std::ostream& outputStream)
         }
 
         for(bool codeBit : symbolCode) {
-            byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
+            byteOfCode |= codeBit << (BITS_IN_BYTE - bitIndex - 1);
             ++bitIndex;
 
-            if(bitIndex >= bitsInByte) {
+            if(bitIndex >= BITS_IN_BYTE) {
                 write(outputStream, byteOfCode);
                 byteOfCode = 0;
                 bitIndex = 0;
@@ -84,14 +83,13 @@ void compress_data(const HTree& tree, std::istream& inputStream, std::ostream& o
     outputStream.seekp(pos + std::ostream::off_type(1));
 
     // writing bits
-    constexpr int bitsInByte = 8;
     std::uint8_t bitIndex = 0;
     std::uint8_t byteOfCode = 0;
     for(bool codeBit : bitsBuffer) {
-        byteOfCode |= codeBit << (bitsInByte - bitIndex - 1);
+        byteOfCode |= codeBit << (BITS_IN_BYTE - bitIndex - 1);
         ++bitIndex;
 
-        if(bitIndex >= bitsInByte) {
+        if(bitIndex >= BITS_IN_BYTE) {
             write(outputStream, byteOfCode);
             byteOfCode = 0;
             bitIndex = 0;
@@ -102,7 +100,7 @@ void compress_data(const HTree& tree, std::istream& inputStream, std::ostream& o
         write(outputStream, byteOfCode);
     }
 
-    const auto offset = static_cast<std::uint8_t>(bitsInByte - bitIndex);
+    const auto offset = static_cast<std::uint8_t>(BITS_IN_BYTE - bitIndex);
     outputStream.clear();
     outputStream.seekp(pos);
     write(outputStream, offset);
@@ -122,13 +120,12 @@ void read_header(std::istream& inputStream, HTree& tree)
     }
 
     // reading bits
-    constexpr int bitsInByte = 8;
     BitsBuffer bits;
     while(inputStream && inputStream.tellg() < header.offset) {
         std::uint8_t currentByte = 0;
         read(inputStream, currentByte);
-        for(int bitIndex = 0; bitIndex < bitsInByte; ++bitIndex) {
-            bits.push_back(currentByte & (1 << (bitsInByte - bitIndex - 1)));
+        for(int bitIndex = 0; bitIndex < BITS_IN_BYTE; ++bitIndex) {
+            bits.push_back(currentByte & (1 << (BITS_IN_BYTE - bitIndex - 1)));
         }
     }
 
@@ -166,7 +163,7 @@ void decompress_data(const HTree& tree, std::istream& inputStream, std::ostream&
 
 void compress_file(const std::string& from, const std::string& to)
 {
-    std::ifstream from_file(from);
+    std::ifstream from_file(from, std::ios::in | std::ios::binary);
     if(!from_file) {
         return;
     }
@@ -174,7 +171,7 @@ void compress_file(const std::string& from, const std::string& to)
     HTree tree;
     tree.setStream(from_file);
 
-    std::ofstream to_file(to);
+    std::ofstream to_file(to, std::ios::out | std::ios::binary);
     if(!to_file) {
         return;
     }
@@ -189,12 +186,12 @@ void compress_file(const std::string& from, const std::string& to)
 
 void decompress_file(const std::string& from, const std::string& to)
 {
-    std::ifstream from_huffman_file(from);
+    std::ifstream from_huffman_file(from, std::ios::in | std::ios::binary);
 
     HTree tree;
     read_header(from_huffman_file, tree);
 
-    std::ofstream to_file(to);
+    std::ofstream to_file(to, std::ios::out | std::ios::binary);
     decompress_data(tree, from_huffman_file, to_file);
     from_huffman_file.close();
     to_file.close();
