@@ -30,21 +30,7 @@ public: // types
 public:
     explicit HTree() = default;
     const HuffmanDict& huffmanDict() const { return huffmanDict_; }
-
-    template<class It>
-    void setBytesRange(It first, It last)
-    {
-        CharFrequencies frequencies{0};
-        CalculateFrequencies(first, last, frequencies);
-        for(std::size_t i = 0; i < frequencies.size(); ++i) {
-            if(frequencies.at(i) > 0) {
-                qDebug() << "Char: '" << (char)i << "' = " << frequencies.at(i);
-            }
-        }
-//        const auto leafs = fillNodes(frequencies);
-//        buildTree(leafs);
-//        buildHuffmanDictFromTree(huffmanDict_, leafs);
-    }
+    HuffmanDict& huffmanDict() { return huffmanDict_; }
 
     void setStream(std::istream& stream);
     void setHuffmanDict(const HuffmanDict& dict);
@@ -52,18 +38,7 @@ public:
     BitsBuffer encodeBytes(const BytesBuffer& bytesBuffer) const;
     BytesBuffer decodeBits(const BitsBuffer& bitsBuffer) const;
 
-    void compress(std::istream& from, std::ostream& to);
-    void decompress(std::istream& from, std::ostream& to);
-
 private:
-    template<class It>
-    static void CalculateFrequencies(It first, It last, CharFrequencies& frequencies)
-    {
-        for(; first != last; ++first) {
-            ++frequencies.at(*first);
-        }
-    }
-
     int makeNode();
     int makeNode(int parentID);
     int makeLeftNode(int parentID);

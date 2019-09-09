@@ -26,12 +26,16 @@ CONFIG += c++14
 
 SOURCES += \
         htree.cpp \
+        huffmanencoding.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        utils.cpp
 
 HEADERS += \
         htree.hpp \
-        mainwindow.hpp
+        huffmanencoding.hpp \
+        mainwindow.hpp \
+        utils.hpp
 
 FORMS += \
         mainwindow.ui

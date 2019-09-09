@@ -28,13 +28,11 @@ void HTree::setHuffmanDict(const HuffmanDict& dict)
     std::copy(std::cbegin(dict), std::cend(dict), std::begin(huffmanDict_));
     rootID_ = rootNodeID;
 
-    for(std::size_t currentSign = 0; currentSign < huffmanDict_.size(); ++currentSign)
-    {
+    for(std::size_t currentSign = 0; currentSign < huffmanDict_.size(); ++currentSign) {
         const auto& bitCodes = huffmanDict_.at(currentSign);
 
         int currNodeID = rootNodeID;
-        for(const bool bitCode : bitCodes)
-        {
+        for(const bool bitCode : bitCodes) {
             if(bitCode) {
                 currNodeID = (getNode(currNodeID).rightNodeID != -1) ? getNode(currNodeID).rightNodeID : makeRightNode(currNodeID);
             }
@@ -50,8 +48,7 @@ void HTree::setHuffmanDict(const HuffmanDict& dict)
 BitsBuffer HTree::encodeBytes(const BytesBuffer& bytesBuffer) const
 {
     BitsBuffer result;
-    for(const auto currByte : bytesBuffer)
-    {
+    for(const auto currByte : bytesBuffer) {
         const auto& currBits = huffmanDict_.at(currByte);
         std::copy(std::cbegin(currBits), std::cend(currBits), std::back_inserter(result));
     }
@@ -61,11 +58,9 @@ BitsBuffer HTree::encodeBytes(const BytesBuffer& bytesBuffer) const
 BytesBuffer HTree::decodeBits(const BitsBuffer& bitsBuffer) const
 {
     BytesBuffer result;
-    for(std::size_t bitIndex = 0; bitIndex < bitsBuffer.size(); )
-    {
+    for(std::size_t bitIndex = 0; bitIndex < bitsBuffer.size(); ) {
         int currNodeID = rootID_;
-        while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1)
-        {
+        while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1) {
             currNodeID = bitsBuffer.at(bitIndex) ? getNode(currNodeID).rightNodeID : getNode(currNodeID).leftNodeID;
             ++bitIndex;
         }
@@ -105,8 +100,7 @@ int HTree::makeRightNode(int parentID)
 HTree::NodeIDs HTree::fillNodes(const CharFrequencies& frequencies)
 {
     NodeIDs leafsIDs;
-    for(std::size_t currentSign = 0; currentSign < frequencies.size(); ++currentSign)
-    {
+    for(std::size_t currentSign = 0; currentSign < frequencies.size(); ++currentSign) {
         const std::size_t currSignFrequency = frequencies.at(currentSign);
         if(currSignFrequency <= 0) {
             continue;
@@ -130,8 +124,7 @@ void HTree::buildTree(const NodeIDs& leafs)
     };
 
     std::priority_queue<int, std::vector<int>, decltype(comp)> freeNodes(comp, leafs);
-    while(freeNodes.size() > 1)
-    {
+    while(freeNodes.size() > 1) {
         const int leftChildID = freeNodes.top();
         freeNodes.pop();
         const int rightChildID = freeNodes.top();
@@ -157,12 +150,10 @@ void HTree::buildTree(const NodeIDs& leafs)
 
 void HTree::buildHuffmanDictFromTree(HuffmanDict& dict, const NodeIDs& leafs)
 {
-    for(const int leafID : leafs)
-    {
+    for(const int leafID : leafs) {
         const auto sign = getNode(leafID).sign;
         auto& bits = dict.at(static_cast<std::size_t>(sign));
-        for(int parentID = leafID; getNode(parentID).parentNodeID >= 0; parentID = getNode(parentID).parentNodeID)
-        {
+        for(int parentID = leafID; getNode(parentID).parentNodeID >= 0; parentID = getNode(parentID).parentNodeID) {
             const int parentOfParentID = getNode(parentID).parentNodeID;
             bits.push_back(getNode(parentOfParentID).rightNodeID == parentID);
         }
