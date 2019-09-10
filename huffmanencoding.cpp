@@ -165,7 +165,7 @@ void compress_file(const std::string& from, const std::string& to)
 {
     std::ifstream from_file(from, std::ios::in | std::ios::binary);
     if(!from_file) {
-        return;
+        throw std::runtime_error{"Unable to open file: \"" + from + "\" to read"};
     }
 
     HTree tree;
@@ -173,7 +173,7 @@ void compress_file(const std::string& from, const std::string& to)
 
     std::ofstream to_file(to, std::ios::out | std::ios::binary);
     if(!to_file) {
-        return;
+        throw std::runtime_error{"Unable to open file: \"" + to + "\" to write"};
     }
     write_header(tree, to_file);
     from_file.clear();
@@ -187,11 +187,17 @@ void compress_file(const std::string& from, const std::string& to)
 void decompress_file(const std::string& from, const std::string& to)
 {
     std::ifstream from_huffman_file(from, std::ios::in | std::ios::binary);
+    if(!from_huffman_file) {
+        throw std::runtime_error{"Unable to open file: \"" + from + "\" to read"};
+    }
 
     HTree tree;
     read_header(from_huffman_file, tree);
 
     std::ofstream to_file(to, std::ios::out | std::ios::binary);
+    if(!to_file) {
+        throw std::runtime_error{"Unable to open file: \"" + to + "\" to write"};
+    }
     decompress_data(tree, from_huffman_file, to_file);
     from_huffman_file.close();
     to_file.close();

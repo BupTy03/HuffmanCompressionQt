@@ -35,6 +35,7 @@ HEADERS += \
         htree.hpp \
         huffmanencoding.hpp \
         mainwindow.hpp \
+        packagedtask.hpp \
         utils.hpp
 
 FORMS += \
@@ -44,3 +45,6 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    icons.qrc

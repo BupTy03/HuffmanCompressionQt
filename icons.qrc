@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/compress.ico</file>
+    </qresource>
+</RCC>
