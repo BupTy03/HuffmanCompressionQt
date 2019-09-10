@@ -4,22 +4,6 @@
 #include <cassert>
 #include <queue>
 
-void HTree::setStream(std::istream& inputStream)
-{
-    // calculating frequencies
-    CharFrequencies frequencies{0};
-    inputStream.unsetf(std::ios::skipws);
-    std::for_each(std::istream_iterator<std::uint8_t>(inputStream), std::istream_iterator<std::uint8_t>(),
-    [&frequencies](const std::uint8_t currByte){
-        ++frequencies.at(currByte);
-    });
-
-    // building tree
-    const auto leafs = fillNodes(frequencies);
-    buildTree(leafs);
-    buildHuffmanDictFromTree(huffmanDict_, leafs);
-}
-
 void HTree::setHuffmanDict(const HuffmanDict& dict)
 {
     clearNodes();
@@ -42,31 +26,6 @@ void HTree::setHuffmanDict(const HuffmanDict& dict)
 
         getNode(currNodeID).sign = static_cast<std::uint8_t>(currentSign);
     }
-}
-
-BitsBuffer HTree::encodeBytes(const BytesBuffer& bytesBuffer) const
-{
-    BitsBuffer result;
-    for(const auto currByte : bytesBuffer) {
-        const auto& currBits = huffmanDict_.at(currByte);
-        std::copy(std::cbegin(currBits), std::cend(currBits), std::back_inserter(result));
-    }
-    return result;
-}
-
-BytesBuffer HTree::decodeBits(const BitsBuffer& bitsBuffer) const
-{
-    BytesBuffer result;
-    for(std::size_t bitIndex = 0; bitIndex < bitsBuffer.size(); ) {
-        int currNodeID = rootID_;
-        while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1) {
-            currNodeID = bitsBuffer.at(bitIndex) ? getNode(currNodeID).rightNodeID : getNode(currNodeID).leftNodeID;
-            ++bitIndex;
-        }
-        result.push_back(getNode(currNodeID).sign);
-    }
-
-    return result;
 }
 
 int HTree::makeNode()

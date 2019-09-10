@@ -133,7 +133,7 @@ void MainWindow::endProcessing(bool success)
         setStatusTip("Done");
     }
     else {
-        showError("Unable to compress file");
+        showError("Unable to compress/decompress file");
         setStatusTip("Error");
     }
 

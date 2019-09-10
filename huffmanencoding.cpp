@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <cassert>
+#include <iterator>
 
 void write_header(const HTree& tree, std::ostream& outputStream)
 {
@@ -77,7 +78,8 @@ void write_header(const HTree& tree, std::ostream& outputStream)
 
 void compress_data(const HTree& tree, std::istream& inputStream, std::ostream& outputStream)
 {
-    const auto bitsBuffer = tree.encodeBytes(read_bytes(inputStream));
+    BitsBuffer bitsBuffer;
+    tree.encodeBytes(std::istream_iterator<std::uint8_t>(inputStream), std::istream_iterator<std::uint8_t>(), std::back_inserter(bitsBuffer));
 
     const auto pos = outputStream.tellp();
     outputStream.seekp(pos + std::ostream::off_type(1));
@@ -154,10 +156,8 @@ void decompress_data(const HTree& tree, std::istream& inputStream, std::ostream&
     assert(std::cend(bits) - offset >= std::cbegin(bits));
     bits.erase(std::cend(bits) - offset, std::cend(bits));
 
-    const auto bytes = tree.decodeBits(bits);
-    for(const auto currByte : bytes) {
-        write(outputStream, currByte);
-    }
+    outputStream.unsetf(std::ios::skipws);
+    tree.decodeBits(std::cbegin(bits), std::cend(bits), std::ostream_iterator<std::uint8_t>(outputStream));
 }
 
 
@@ -169,7 +169,8 @@ void compress_file(const std::string& from, const std::string& to)
     }
 
     HTree tree;
-    tree.setStream(from_file);
+    from_file.unsetf(std::ios::skipws);
+    tree.setData(std::istream_iterator<std::uint8_t>(from_file), std::istream_iterator<std::uint8_t>());
 
     std::ofstream to_file(to, std::ios::out | std::ios::binary);
     if(!to_file) {

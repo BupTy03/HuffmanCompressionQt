@@ -3,8 +3,7 @@
 
 #include <vector>
 #include <array>
-
-#include <QDebug>
+#include <algorithm>
 
 using BytesBuffer = std::vector<std::uint8_t>;
 using BitsBuffer = std::vector<bool>;
@@ -32,11 +31,44 @@ public:
     const HuffmanDict& huffmanDict() const { return huffmanDict_; }
     HuffmanDict& huffmanDict() { return huffmanDict_; }
 
-    void setStream(std::istream& inputStream);
+    template<class It>
+    void setData(It first, It last)
+    {
+        // calculating frequencies
+        CharFrequencies frequencies{0};
+        std::for_each(first, last, [&frequencies](const std::uint8_t currByte){
+            ++frequencies.at(currByte);
+        });
+
+        // building tree
+        const auto leafs = fillNodes(frequencies);
+        buildTree(leafs);
+        buildHuffmanDictFromTree(huffmanDict_, leafs);
+    }
+
     void setHuffmanDict(const HuffmanDict& dict);
 
-    BitsBuffer encodeBytes(const BytesBuffer& bytesBuffer) const;
-    BytesBuffer decodeBits(const BitsBuffer& bitsBuffer) const;
+    template<class ByteIt, class BitIt>
+    void encodeBytes(ByteIt first, ByteIt last, BitIt outFirst) const
+    {
+        std::for_each(first, last, [this, outFirst](const std::uint8_t currByte){
+            const auto& currBits = huffmanDict_.at(currByte);
+            std::copy(std::cbegin(currBits), std::cend(currBits), outFirst);
+        });
+    }
+
+    template<class BitIt, class ByteIt>
+    void decodeBits(BitIt first, BitIt last, ByteIt outFirst) const
+    {
+        for(; first != last; ++outFirst) {
+            int currNodeID = rootID_;
+            while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1 && first != last) {
+                currNodeID = *first ? getNode(currNodeID).rightNodeID : getNode(currNodeID).leftNodeID;
+                ++first;
+            }
+            *outFirst = getNode(currNodeID).sign;
+        }
+    }
 
 private:
     int makeNode();
