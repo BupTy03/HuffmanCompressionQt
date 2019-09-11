@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <iostream>
 
 using BytesBuffer = std::vector<std::uint8_t>;
 using BitsBuffer = std::vector<bool>;
@@ -27,6 +28,8 @@ public: // types
     using NodeIDs = std::vector<int>;
 
 public:
+    static constexpr int BITS_IN_BYTE = 8;
+
     explicit HTree() = default;
     const HuffmanDict& huffmanDict() const { return huffmanDict_; }
     HuffmanDict& huffmanDict() { return huffmanDict_; }
@@ -49,18 +52,23 @@ public:
     void setHuffmanDict(const HuffmanDict& dict);
 
     template<class ByteIt, class BitIt>
-    void encodeBytes(ByteIt first, ByteIt last, BitIt outFirst) const
+    std::uint8_t encodeBytes(ByteIt first, ByteIt last, BitIt outFirst) const
     {
-        std::for_each(first, last, [this, outFirst](const std::uint8_t currByte){
-            const auto& currBits = huffmanDict_.at(currByte);
+        for(; first != last; ++first) {
+            const auto& currBits = huffmanDict_.at(*first);
             std::copy(std::cbegin(currBits), std::cend(currBits), outFirst);
-        });
+        }
+
+        return BITS_IN_BYTE - outFirst.currentBit();
     }
 
     template<class BitIt, class ByteIt>
-    void decodeBits(BitIt first, BitIt last, ByteIt outFirst) const
+    void decodeBits(BitIt first, BitIt last, ByteIt outFirst, std::uint8_t bitsOffset) const
     {
         for(; first != last; ++outFirst) {
+            if(first.isLastByte() && first.currentBit() > (BITS_IN_BYTE - bitsOffset)) {
+                return;
+            }
             int currNodeID = rootID_;
             while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1 && first != last) {
                 currNodeID = *first ? getNode(currNodeID).rightNodeID : getNode(currNodeID).leftNodeID;

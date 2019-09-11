@@ -1,6 +1,8 @@
 #include "huffmanencoding.hpp"
 #include "utils.hpp"
 #include "htree.hpp"
+#include "istreambitsiterator.hpp"
+#include "ostreambitsiterator.hpp"
 
 #include <fstream>
 #include <cassert>
@@ -78,31 +80,19 @@ void write_header(const HTree& tree, std::ostream& outputStream)
 
 void compress_data(const HTree& tree, std::istream& inputStream, std::ostream& outputStream)
 {
-    BitsBuffer bitsBuffer;
-    tree.encodeBytes(std::istream_iterator<std::uint8_t>(inputStream), std::istream_iterator<std::uint8_t>(), std::back_inserter(bitsBuffer));
+    inputStream.unsetf(std::ios::skipws);
+    outputStream.unsetf(std::ios::skipws);
 
     const auto pos = outputStream.tellp();
+    outputStream.clear();
     outputStream.seekp(pos + std::ostream::off_type(1));
 
-    // writing bits
-    std::uint8_t bitIndex = 0;
-    std::uint8_t byteOfCode = 0;
-    for(bool codeBit : bitsBuffer) {
-        byteOfCode |= codeBit << (BITS_IN_BYTE - bitIndex - 1);
-        ++bitIndex;
-
-        if(bitIndex >= BITS_IN_BYTE) {
-            write(outputStream, byteOfCode);
-            byteOfCode = 0;
-            bitIndex = 0;
-        }
+    OstreamBitsIterator outIt(outputStream);
+    const auto offset = tree.encodeBytes(std::istream_iterator<std::uint8_t>(inputStream), std::istream_iterator<std::uint8_t>(), outIt);
+    if(offset > 0) {
+        outIt.flush();
     }
 
-    if(bitIndex > 0) {
-        write(outputStream, byteOfCode);
-    }
-
-    const auto offset = static_cast<std::uint8_t>(BITS_IN_BYTE - bitIndex);
     outputStream.clear();
     outputStream.seekp(pos);
     write(outputStream, offset);
@@ -149,30 +139,29 @@ void decompress_data(const HTree& tree, std::istream& inputStream, std::ostream&
     std::uint8_t offset = 0;
     read(inputStream, offset);
 
-    // reading data
-    BitsBuffer bits = read_bits(inputStream);
-
-    // erasing insignificant bits from the end
-    assert(std::cend(bits) - offset >= std::cbegin(bits));
-    bits.erase(std::cend(bits) - offset, std::cend(bits));
-
+    // decoding data
     outputStream.unsetf(std::ios::skipws);
-    tree.decodeBits(std::cbegin(bits), std::cend(bits), std::ostream_iterator<std::uint8_t>(outputStream));
+
+//    BitsBuffer bits = read_bits(inputStream);
+//    bits.erase(std::cend(bits) - offset, std::cend(bits));
+//    tree.decodeBits(std::cbegin(bits), std::cend(bits), std::ostream_iterator<std::uint8_t>(outputStream));
+    tree.decodeBits(IstreamBitsIterator(inputStream), IstreamBitsIterator(), std::ostream_iterator<std::uint8_t>(outputStream), offset);
 }
 
 
 void compress_file(const std::string& from, const std::string& to)
 {
     std::ifstream from_file(from, std::ios::in | std::ios::binary);
+    from_file.unsetf(std::ios::skipws);
     if(!from_file) {
         throw std::runtime_error{"Unable to open file: \"" + from + "\" to read"};
     }
 
     HTree tree;
-    from_file.unsetf(std::ios::skipws);
     tree.setData(std::istream_iterator<std::uint8_t>(from_file), std::istream_iterator<std::uint8_t>());
 
     std::ofstream to_file(to, std::ios::out | std::ios::binary);
+    to_file.unsetf(std::ios::skipws);
     if(!to_file) {
         throw std::runtime_error{"Unable to open file: \"" + to + "\" to write"};
     }
@@ -188,6 +177,7 @@ void compress_file(const std::string& from, const std::string& to)
 void decompress_file(const std::string& from, const std::string& to)
 {
     std::ifstream from_huffman_file(from, std::ios::in | std::ios::binary);
+    from_huffman_file.unsetf(std::ios::skipws);
     if(!from_huffman_file) {
         throw std::runtime_error{"Unable to open file: \"" + from + "\" to read"};
     }
@@ -196,6 +186,7 @@ void decompress_file(const std::string& from, const std::string& to)
     read_header(from_huffman_file, tree);
 
     std::ofstream to_file(to, std::ios::out | std::ios::binary);
+    to_file.unsetf(std::ios::skipws);
     if(!to_file) {
         throw std::runtime_error{"Unable to open file: \"" + to + "\" to write"};
     }

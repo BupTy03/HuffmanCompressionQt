@@ -34,7 +34,9 @@ SOURCES += \
 HEADERS += \
         htree.hpp \
         huffmanencoding.hpp \
+        istreambitsiterator.hpp \
         mainwindow.hpp \
+        ostreambitsiterator.hpp \
         packagedtask.hpp \
         utils.hpp
 
