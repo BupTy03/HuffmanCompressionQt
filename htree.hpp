@@ -63,16 +63,16 @@ public:
     }
 
     template<class BitIt, class ByteIt>
-    void decodeBits(BitIt first, BitIt last, ByteIt outFirst, std::uint8_t bitsOffset) const
+    void decodeBits(BitIt first, BitIt last, ByteIt outFirst/*, std::uint8_t bitsOffset*/) const
     {
         for(; first != last; ++outFirst) {
-            if(first.isLastByte() && first.currentBit() > (BITS_IN_BYTE - bitsOffset)) {
-                return;
-            }
             int currNodeID = rootID_;
             while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1 && first != last) {
                 currNodeID = *first ? getNode(currNodeID).rightNodeID : getNode(currNodeID).leftNodeID;
                 ++first;
+//                if(first.isLastByte() && first.currentBit() > (BITS_IN_BYTE - bitsOffset)) {
+//                    return;
+//                }
             }
             *outFirst = getNode(currNodeID).sign;
         }

@@ -38,21 +38,22 @@ public:
 
     IstreamBitsIterator& operator++()
     {
-        assert(state_ != nullptr);
-
         ++(state_->currBitIndex);
         if (state_->currBitIndex >= BITS_IN_BYTE) {
             state_->currByte = 0;
             state_->currBitIndex = 0;
 
-            if (stream_ == nullptr) {
-                return *this;
-            }
-            stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
             if (!(*stream_)) {
                 stream_ = nullptr;
                 return *this;
             }
+            stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
+            stream_->get();
+            if (!(*stream_)) {
+                stream_ = nullptr;
+                return *this;
+            }
+            stream_->unget();
         }
         return *this;
     }
