@@ -19,7 +19,13 @@ namespace OstreamBitsIteratorImpl {
     };
 }
 
-class OstreamBitsIterator : public std::iterator<std::output_iterator_tag, bool, std::ptrdiff_t, bool*, OstreamBitsIteratorImpl::reference_type>
+class OstreamBitsIterator
+    : public std::iterator<
+        std::output_iterator_tag,
+        bool,
+        std::ptrdiff_t,
+        bool*,
+        OstreamBitsIteratorImpl::reference_type>
 {
     friend OstreamBitsIteratorImpl::reference_type;
 public:

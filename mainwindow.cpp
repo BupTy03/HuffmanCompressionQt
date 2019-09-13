@@ -89,6 +89,11 @@ void MainWindow::startProcess()
         return;
     }
 
+    if(pathFromFile == pathToFile) {
+        showError("Path to output file shouldn't be equal to path to input file!");
+        return;
+    }
+
     const auto pathFrom = pathFromFile.toStdString();
     const auto pathTo = pathToFile.toStdString();
     if(ui->compressRadioButton->isChecked()) {

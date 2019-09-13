@@ -6,6 +6,12 @@
 #include <memory>
 
 class IstreamBitsIterator
+    : public std::iterator<
+        std::input_iterator_tag,
+        bool,
+        std::ptrdiff_t,
+        const bool*,
+        const bool&>
 {
 public:
     static constexpr int BITS_IN_BYTE = 8;
