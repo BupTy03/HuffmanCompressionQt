@@ -5,10 +5,6 @@
 #include <cassert>
 #include <memory>
 
-class IstreamBitsIterator;
-//static bool is_last_byte(const IstreamBitsIterator& it);
-//static std::uint8_t current_bit(const IstreamBitsIterator& it);
-
 class IstreamBitsIterator
 {
 public:
@@ -28,7 +24,16 @@ public:
 
     bool isLastByte() const
     {
-        return stream_ == nullptr || bool(*stream_);
+        if(stream_ == nullptr) {
+            return true;
+        }
+
+        stream_->get();
+        const bool result = !bool(*stream_);
+        stream_->unget();
+        stream_->clear();
+
+        return result;
     }
     std::uint8_t currentBit() const
     {
@@ -43,17 +48,11 @@ public:
             state_->currByte = 0;
             state_->currBitIndex = 0;
 
-            if (!(*stream_)) {
-                stream_ = nullptr;
-                return *this;
-            }
             stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
-            stream_->get();
             if (!(*stream_)) {
                 stream_ = nullptr;
                 return *this;
             }
-            stream_->unget();
         }
         return *this;
     }
@@ -91,8 +90,5 @@ private:
     std::istream* stream_ = nullptr;
     std::shared_ptr<current_state> state_;
 };
-
-//bool is_last_byte(const IstreamBitsIterator& it)  { return it.isLastByte(); }
-//std::uint8_t current_bit(const IstreamBitsIterator& it) { return it.currentBit(); }
 
 #endif // ISTREAMBITSITERATOR_HPP

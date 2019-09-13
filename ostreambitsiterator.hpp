@@ -6,8 +6,6 @@
 #include <cassert>
 
 class OstreamBitsIterator;
-//static void flush(OstreamBitsIterator& it);
-//static std::uint8_t current_bit(const OstreamBitsIterator& it);
 
 namespace OstreamBitsIteratorImpl {
     class reference_type {
@@ -95,9 +93,6 @@ private:
     std::ostream* stream_ = nullptr;
     std::shared_ptr<current_state> state_;
 };
-
-//void flush(OstreamBitsIterator& it) { it.flush(); }
-//std::uint8_t current_bit(const OstreamBitsIterator& it) { return it.currentBit(); }
 
 namespace OstreamBitsIteratorImpl {
     reference_type& reference_type::operator=(bool value)

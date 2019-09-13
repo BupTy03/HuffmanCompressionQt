@@ -141,11 +141,7 @@ void decompress_data(const HTree& tree, std::istream& inputStream, std::ostream&
 
     // decoding data
     outputStream.unsetf(std::ios::skipws);
-
-    BitsBuffer bits = read_bits(inputStream);
-    bits.erase(std::cend(bits) - offset, std::cend(bits));
-    tree.decodeBits(std::cbegin(bits), std::cend(bits), std::ostream_iterator<std::uint8_t>(outputStream));
-//    tree.decodeBits(IstreamBitsIterator(inputStream), IstreamBitsIterator(), std::ostream_iterator<std::uint8_t>(outputStream), offset);
+    tree.decodeBits(IstreamBitsIterator(inputStream), IstreamBitsIterator(), std::ostream_iterator<std::uint8_t>(outputStream), offset);
 }
 
 
