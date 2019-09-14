@@ -24,7 +24,7 @@ public:
         , state_{std::make_shared<current_state>()}
     {
         if (*stream_) {
-            stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
+            read(*stream_, state_->currByte);
         }
     }
 
@@ -54,7 +54,7 @@ public:
             state_->currByte = 0;
             state_->currBitIndex = 0;
 
-            stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
+            read(*stream_, state_->currByte);
             if (!(*stream_)) {
                 stream_ = nullptr;
                 return *this;
@@ -78,7 +78,7 @@ public:
 
         if(countBytes != 0) {
             stream_->seekg(stream_->tellg() + countBytes);
-            stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
+            read(*stream_, state_->currByte);
         }
 
         state_->currByte = 0;

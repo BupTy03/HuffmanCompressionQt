@@ -40,7 +40,7 @@ public:
     {
         assert(state_ != nullptr);
         if (stream_ != nullptr && (*stream_) && state_->currBitIndex > 0) {
-            stream_->write(reinterpret_cast<char*>(&(state_->currByte)), 1);
+            write(*stream_, state_->currByte);
         }
     }
     std::uint8_t currentBit() const
@@ -59,7 +59,7 @@ public:
                 return *this;
             }
 
-            stream_->write(reinterpret_cast<char*>(&(state_->currByte)), 1);
+            write(*stream_, state_->currByte);
             state_->currByte = 0;
             state_->currBitIndex = 0;
             if (!(*stream_)) {
