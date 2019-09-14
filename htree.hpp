@@ -1,6 +1,8 @@
 #ifndef HTREE_HPP
 #define HTREE_HPP
 
+#include "utils.hpp"
+
 #include <vector>
 #include <array>
 #include <algorithm>
@@ -28,8 +30,6 @@ public: // types
     using NodeIDs = std::vector<int>;
 
 public:
-    static constexpr int BITS_IN_BYTE = 8;
-
     explicit HTree() = default;
     const HuffmanDict& huffmanDict() const { return huffmanDict_; }
     HuffmanDict& huffmanDict() { return huffmanDict_; }

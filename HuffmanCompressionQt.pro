@@ -28,8 +28,7 @@ SOURCES += \
         htree.cpp \
         huffmanencoding.cpp \
         main.cpp \
-        mainwindow.cpp \
-        utils.cpp
+        mainwindow.cpp
 
 HEADERS += \
         htree.hpp \

@@ -1,6 +1,8 @@
 #ifndef ISTREAMBITSITERATOR_HPP
 #define ISTREAMBITSITERATOR_HPP
 
+#include "utils.hpp"
+
 #include <istream>
 #include <cassert>
 #include <memory>
@@ -14,8 +16,6 @@ class IstreamBitsIterator
         const bool&>
 {
 public:
-    static constexpr int BITS_IN_BYTE = 8;
-
     using value_type = bool;
 
     explicit IstreamBitsIterator() {}
@@ -67,6 +67,23 @@ public:
         auto retval = *this;
         ++(*this);
         return retval;
+    }
+    IstreamBitsIterator& operator+=(std::ptrdiff_t off)
+    {
+        assert(stream_ != nullptr);
+        assert(state_ != nullptr);
+
+        const auto countBytes = off / BITS_IN_BYTE;
+        const auto countBits = off % BITS_IN_BYTE;
+
+        if(countBytes != 0) {
+            stream_->seekg(stream_->tellg() + countBytes);
+            stream_->read(reinterpret_cast<char*>(&(state_->currByte)), 1);
+        }
+
+        state_->currByte = 0;
+        state_->currBitIndex = static_cast<std::uint8_t>((countBits >= 0) ? countBits : BITS_IN_BYTE + countBits);
+        return *this;
     }
 
     bool operator==(IstreamBitsIterator other) const

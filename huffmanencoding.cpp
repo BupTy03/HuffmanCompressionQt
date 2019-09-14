@@ -28,6 +28,8 @@ void write_header(const HTree& tree, std::ostream& outputStream)
     outputStream.seekp(posOfOffset + std::ostream::off_type(2));
 
     // writing entries
+    std::vector<SymbolEntry> entries;
+    entries.reserve(countEntries);
     for(std::size_t byteIndex = 0; byteIndex < dict.size(); ++byteIndex) {
         const auto& codeBits = dict.at(byteIndex);
         assert(codeBits.size() <= std::numeric_limits<std::uint8_t>::max());
@@ -36,41 +38,25 @@ void write_header(const HTree& tree, std::ostream& outputStream)
             continue;
         }
 
-        SymbolEntry entry{
-            static_cast<std::uint8_t>(byteIndex),      // symbol
-            static_cast<std::uint8_t>(codeBits.size()) // count bits
-        };
-
-        write(outputStream, entry);
+        entries.push_back(SymbolEntry{static_cast<std::uint8_t>(byteIndex), static_cast<std::uint8_t>(codeBits.size())});
     }
+
+    outputStream.write(reinterpret_cast<const char*>(entries.data()), std::streamsize(sizeof(SymbolEntry) * entries.size()));
 
     // writing bits
-    std::uint8_t bitIndex = 0;
-    std::uint8_t byteOfCode = 0;
-    for(const auto& symbolCode : dict) {
-        if(symbolCode.empty()) {
-            continue;
-        }
-
-        for(bool codeBit : symbolCode) {
-            byteOfCode |= codeBit << (BITS_IN_BYTE - bitIndex - 1);
-            ++bitIndex;
-
-            if(bitIndex >= BITS_IN_BYTE) {
-                write(outputStream, byteOfCode);
-                byteOfCode = 0;
-                bitIndex = 0;
-            }
-        }
+    OstreamBitsIterator outIt(outputStream);
+    for(const auto& bitCode : dict) {
+        std::copy(std::cbegin(bitCode), std::cend(bitCode), outIt);
     }
 
-    if(bitIndex > 0) {
-        write(outputStream, byteOfCode);
+    if(outIt.currentBit() > 0) {
+        outIt.flush();
     }
 
     const auto dataOffset = outputStream.tellp();
     outputStream.clear();
     outputStream.seekp(posOfOffset);
+
     const auto offset = static_cast<std::uint16_t>(dataOffset);
     write(outputStream, offset);
 
@@ -105,11 +91,8 @@ void read_header(std::istream& inputStream, HTree& tree)
     read(inputStream, header);
 
     // reading entries
-    std::vector<SymbolEntry> entries;
-    for(std::size_t entryIndex = 0; entryIndex < header.count; ++entryIndex) {
-        entries.emplace_back();
-        read(inputStream, entries.back());
-    }
+    std::vector<SymbolEntry> entries(header.count);
+    inputStream.read(reinterpret_cast<char*>(entries.data()), std::streamsize(sizeof(SymbolEntry) * entries.size()));
 
     // reading bits
     BitsBuffer bits;

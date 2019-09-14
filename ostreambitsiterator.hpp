@@ -1,6 +1,8 @@
 #ifndef OSTREAMBITSITERATOR_HPP
 #define OSTREAMBITSITERATOR_HPP
 
+#include "utils.hpp"
+
 #include <ostream>
 #include <memory>
 #include <cassert>
@@ -29,8 +31,6 @@ class OstreamBitsIterator
 {
     friend OstreamBitsIteratorImpl::reference_type;
 public:
-    static constexpr int BITS_IN_BYTE = 8;
-
     explicit OstreamBitsIterator(std::ostream& os)
         : stream_{ &os }
         , state_{std::make_shared<current_state>()}
@@ -103,7 +103,7 @@ private:
 namespace OstreamBitsIteratorImpl {
     reference_type& reference_type::operator=(bool value)
     {
-        context_->state_->currByte |= (value << (OstreamBitsIterator::BITS_IN_BYTE - context_->state_->currBitIndex - 1));
+        context_->state_->currByte |= (value << (BITS_IN_BYTE - context_->state_->currBitIndex - 1));
         return *this;
     }
 }
