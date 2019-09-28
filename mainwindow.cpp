@@ -97,28 +97,10 @@ void MainWindow::startProcess()
     const auto pathFrom = pathFromFile.toStdString();
     const auto pathTo = pathToFile.toStdString();
     if(ui->compressRadioButton->isChecked()) {
-        compressingTask_->setTask([pathFrom, pathTo]{
-            try {
-                compress_file(pathFrom, pathTo);
-            }
-            catch(const std::exception& exc) {
-                std::cerr << "Exception while compressing file: " << exc.what();
-                return false;
-            }
-            return true;
-        });
+        compressingTask_->setTask([pathFrom, pathTo]{ compress_file(pathFrom, pathTo); });
     }
     else {
-        compressingTask_->setTask([pathFrom, pathTo]{
-            try {
-                decompress_file(pathFrom, pathTo);
-            }
-            catch(const std::exception& exc) {
-                std::cerr << "Exception while decompressing file: " << exc.what();
-                return false;
-            }
-            return true;
-        });
+        compressingTask_->setTask([pathFrom, pathTo]{ decompress_file(pathFrom, pathTo); });
     }
 
     beginProcessing();
@@ -138,7 +120,14 @@ void MainWindow::endProcessing(bool success)
         setStatusTip("Done");
     }
     else {
-        showError("Unable to compress/decompress file");
+        const auto pException = compressingTask_->getLastException();
+        if(pException) {
+            try { std::rethrow_exception(pException); }
+            catch(const std::exception& exc) { showError(QObject::tr("Exception: ") + exc.what()); }
+        }
+        else {
+            showError("Unable to compress/decompress file");
+        }
         setStatusTip("Error");
     }
 

@@ -7,13 +7,7 @@
 #include <cassert>
 #include <memory>
 
-class IstreamBitsIterator
-    : public std::iterator<
-        std::input_iterator_tag,
-        bool,
-        std::ptrdiff_t,
-        const bool*,
-        const bool&>
+class IstreamBitsIterator : public std::iterator<std::input_iterator_tag,bool,std::ptrdiff_t, const bool*, const bool&>
 {
 public:
     using value_type = bool;

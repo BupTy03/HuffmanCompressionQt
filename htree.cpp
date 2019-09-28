@@ -4,11 +4,15 @@
 #include <cassert>
 #include <queue>
 
-void HTree::setHuffmanDict(const HuffmanDict& dict)
+void HTree::setHuffmanDict(const HuffmanDict& dict) { setHuffmanDict(HuffmanDict(dict)); }
+
+void HTree::setHuffmanDict(HuffmanDict&& dict)
 {
+    assert(dict.size() == 256);
+
     clearNodes();
     const int rootNodeID = makeNode();
-    std::copy(std::cbegin(dict), std::cend(dict), std::begin(huffmanDict_));
+    huffmanDict_ = std::move(dict);
     rootID_ = rootNodeID;
 
     for(std::size_t currentSign = 0; currentSign < huffmanDict_.size(); ++currentSign) {

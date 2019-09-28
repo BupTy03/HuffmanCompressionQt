@@ -1,6 +1,7 @@
 #ifndef HTREE_HPP
 #define HTREE_HPP
 
+#include "bits_array.hpp"
 #include "utils.hpp"
 
 #include <vector>
@@ -9,12 +10,11 @@
 #include <iostream>
 
 using BytesBuffer = std::vector<std::uint8_t>;
-using BitsBuffer = std::vector<bool>;
-using HuffmanDict = std::array<BitsBuffer, 256>;
+using BitsBuffer = bits_array<std::uint32_t>;
+using HuffmanDict = std::vector<BitsBuffer>;
 using CharFrequencies = std::array<std::size_t, 256>;
 
-struct HTreeNode
-{
+struct HTreeNode {
     std::size_t weight = 0;
     std::uint8_t sign = 0;
     int leftNodeID = -1;
@@ -22,17 +22,15 @@ struct HTreeNode
     int parentNodeID = -1;
 };
 
-class HTree
-{
+class HTree {
 public: // types
     using Node = HTreeNode;
     using Nodes = std::vector<Node>;
     using NodeIDs = std::vector<int>;
 
 public:
-    explicit HTree() = default;
-    const HuffmanDict& huffmanDict() const { return huffmanDict_; }
-    HuffmanDict& huffmanDict() { return huffmanDict_; }
+    explicit HTree() : huffmanDict_{256} {}
+    HuffmanDict huffmanDict() const { return huffmanDict_; }
 
     template<class It>
     void setData(It first, It last)
@@ -50,6 +48,7 @@ public:
     }
 
     void setHuffmanDict(const HuffmanDict& dict);
+    void setHuffmanDict(HuffmanDict&& dict);
 
     template<class ByteIt, class BitIt>
     std::uint8_t encodeBytes(ByteIt first, ByteIt last, BitIt outFirst) const
@@ -67,7 +66,7 @@ public:
     {
         for(; first != last; ++outFirst) {
             int currNodeID = rootID_;
-            while(getNode(currNodeID).leftNodeID != -1 && getNode(currNodeID).rightNodeID != -1 && first != last) {
+            while(getNode(currNodeID).leftNodeID >= 0 && getNode(currNodeID).rightNodeID >= 0 && first != last) {
                 if(first.isLastByte() && first.currentBit() > (BITS_IN_BYTE - bitsOffset - 1)) {
                     return;
                 }

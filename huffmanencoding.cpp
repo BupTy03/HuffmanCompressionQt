@@ -1,4 +1,5 @@
 #include "huffmanencoding.hpp"
+#include "bits_utils.hpp"
 #include "utils.hpp"
 #include "htree.hpp"
 #include "istreambitsiterator.hpp"
@@ -95,17 +96,17 @@ void read_header(std::istream& inputStream, HTree& tree)
     inputStream.read(reinterpret_cast<char*>(entries.data()), std::streamsize(sizeof(SymbolEntry) * entries.size()));
 
     // reading bits
-    BitsBuffer bits;
+    std::vector<bool> bits;
     while(inputStream && inputStream.tellg() < header.offset) {
         std::uint8_t currentByte = 0;
         read(inputStream, currentByte);
-        for(int bitIndex = 0; bitIndex < BITS_IN_BYTE; ++bitIndex) {
-            bits.push_back(currentByte & (1 << (BITS_IN_BYTE - bitIndex - 1)));
+        for(std::size_t bitIndex = 0; bitIndex < BITS_IN_BYTE; ++bitIndex) {
+            bits.push_back(get_bit(currentByte, bitIndex));
         }
     }
 
     // fill dict
-    HuffmanDict dict;
+    HuffmanDict dict(256);
     auto it = std::cbegin(bits);
     for(const auto& entry : entries) {
         auto& currBitCode = dict.at(entry.symbol);

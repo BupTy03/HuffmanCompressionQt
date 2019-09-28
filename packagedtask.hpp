@@ -4,21 +4,37 @@
 #include <QObject>
 
 #include <functional>
+#include <exception>
 
 class PackagedTask : public QObject
 {
     Q_OBJECT
 public:
-    void setTask(std::function<bool()> task) { tsk_ = std::move(task); }
+    using Task = std::function<void()>;
+
+public:
+    void setTask(Task task) { task_ = std::move(task); }
+    std::exception_ptr getLastException() const { return pException_; }
 
 signals:
     void taskDone(bool success);
 
 public slots:
-    void startTask() { const bool successfully = tsk_(); emit taskDone(successfully); }
+    void startTask()
+    {
+        try {
+            task_();
+            emit taskDone(true);
+        }
+        catch(...) {
+            pException_ = std::current_exception();
+            emit taskDone(false);
+        }
+    }
 
 private:
-    std::function<bool()> tsk_;
+    Task task_;
+    std::exception_ptr pException_;
 };
 
 #endif // PACKAGEDTASK_HPP
