@@ -1,9 +1,7 @@
-#pragma once
 #ifndef BITS_UTILS_HPP
 #define BITS_UTILS_HPP
 
 #include <type_traits>
-
 
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline bool get_bit(T bits, std::size_t index) noexcept
@@ -25,7 +23,7 @@ constexpr inline T set_bit(T bits, std::size_t index, bool value) noexcept
     return bits | (value << (bits_count - index - 1)); // set bit
 }
 
-#if 0
+/*
 // normal version of insert_bits function
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr T insert_bits(T bits, std::size_t index, std::size_t count, bool value) noexcept
@@ -58,9 +56,10 @@ constexpr T insert_bits(T bits, std::size_t index, std::size_t count, bool value
 
     return bits;
 }
-#endif
+*/
 
-// "optimized" version of insert_bits function
+
+// optimized version of insert_bits function
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline T insert_bits(T bits, std::size_t index, std::size_t count, bool value) noexcept
 {
@@ -72,33 +71,34 @@ constexpr inline T insert_bits(T bits, std::size_t index, std::size_t count, boo
         : ((bits >> count) & (mask >> last_inserted_index)) | (bits & (mask << (bits_count - index)));
 }
 
-#if 0
+
+/*
 // normal version of erase_bits function
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr T erase_bits(T bits, std::size_t index, std::size_t count) noexcept
 {
     T mask = ~0;
-    mask >>= index;
-    mask = ~mask;
+    mask <<= 8 * sizeof(T) - index;
 
     const T saved = bits & mask;
     bits <<= count;
 
-    T mask2 = ~0;
-    mask2 >>= index;
-    bits &= mask2;
+    mask = ~0;
+    mask >>= index;
+    bits &= mask;
 
     bits |= saved;
     return bits;
 }
-#endif
+*/
 
-// "optimized" version of erase_bits function
+
+// optimized version of erase_bits function
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline T erase_bits(T bits, std::size_t index, std::size_t count) noexcept
 {
     constexpr T mask = ~0;
-    return ((bits << count) & (mask >> index)) | (bits & (~(mask >> index)));
+    return (bits & (mask << ((8*sizeof(T)) - index))) | ((bits << count) & (mask >> index));
 }
 
 

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef BITS_ARRAY_HPP
 #define BITS_ARRAY_HPP
 
@@ -54,27 +53,22 @@ public:
     static constexpr auto max_size = 8 * sizeof(T);
 
     explicit bits_array() = default;
-    explicit bits_array(size_type sz) : size_{ sz } { if (sz > max_size) throw std::out_of_range{ "size is greater than maximum allowed" }; }
+    explicit bits_array(size_type sz) : size_{ sz } { check_overflow(sz); }
     explicit bits_array(size_type sz, bool val) : size_{ sz }
     {
-        if (sz > max_size) throw std::out_of_range{ "size is greater than maximum allowed" };
+        check_overflow(sz);
         if (!val) return;
 
         bits_ |= (~(0 << sz)) << (max_size - sz);
     }
 
+    template<class It, typename = has_iterator_type<It>>
+    explicit bits_array(It first, It last) { std::copy(first, last, std::back_inserter(*this)); }
+
     constexpr reference operator[](std::size_t index) { return reference{ bits_, index }; }
     constexpr bool operator[](std::size_t index) const { return get_bit(bits_, index); }
-    constexpr reference at(std::size_t index)
-    {
-        if (index >= size_) throw std::out_of_range{ "index is out of range" };
-        return (*this)[index];
-    }
-    constexpr bool at(std::size_t index) const
-    {
-        if (index >= size_) throw std::out_of_range{ "index is out of range" };
-        return (*this)[index];
-    }
+    constexpr reference at(std::size_t index) { check_index(index); return (*this)[index]; }
+    constexpr bool at(std::size_t index) const { check_index(index); return (*this)[index]; }
     constexpr bool empty() const { return size_ == 0; }
 
     constexpr reference front() { empty_check(); return *(begin()); }
@@ -88,7 +82,7 @@ public:
         check_iterator(it);
 
         const auto new_size = size_ + count;
-        if (new_size > max_size) throw std::out_of_range{ "size exceeded maximum allowed" };
+        check_overflow(new_size);
 
         const auto index = it - cbegin();
         bits_ = insert_bits(bits_, index, count, value);
@@ -102,7 +96,7 @@ public:
         assert(first <= last);
         check_iterator(it);
 
-        auto itIndex = it - cbegin();
+        const auto itIndex = it - cbegin();
         for (; first != last; ++first, ++it) {
             insert(it, 1, bool(*first));
         }
@@ -126,7 +120,7 @@ public:
     }
     constexpr iterator erase(const_iterator it)
     {
-        check_iterator(it);
+        if (it < cbegin() || it >= cend()) throw std::out_of_range{ "iterator is out of range" };
         const auto index = it - cbegin();
         bits_ = erase_bits(bits_, index, 1);
         --size_;
@@ -135,6 +129,19 @@ public:
 
     constexpr void push_back(bool value) { insert(cend(), 1, value); }
     constexpr void pop_back() { erase(cend() - 1); }
+
+    constexpr void resize(size_type count, bool value)
+    {
+        if (size_ == count) return;
+        check_overflow(count);
+
+        bits_ = (size_ > count)
+            ? erase_bits(bits_, count, size_ - count)
+            : insert_bits(bits_, size_, count - size_, value);
+
+        size_ = count;
+    }
+    constexpr void resize(size_type count) { resize(count, 0); }
 
     constexpr size_type size() const { return size_; }
     constexpr void clear() { bits_ = 0; size_ = 0; }
@@ -328,10 +335,11 @@ private: // iterators
     };
 
 private:
-    void check_index(difference_type index) const { if (index < 0 || index >= size_) throw std::out_of_range{ "index is out of range" }; }
+    void check_index(size_type index) const { if (index >= size_) throw std::out_of_range{ "index is out of range" }; }
+    void check_overflow(size_type sz) const { if (sz > max_size) throw std::out_of_range{ "size is greater than maximum allowed" }; }
     void empty_check() const { if (empty()) throw std::out_of_range{ "container is empty" }; }
     void check_iterator(const_iterator it) const { if (it < cbegin() || it > cend()) throw std::out_of_range{ "iterator is out of range" }; }
-    void check_iterators_range(const_iterator first, const_iterator last)
+    void check_iterators_range(const_iterator first, const_iterator last) const
     {
         if (first > last || first < cbegin() || last > cend()) throw std::out_of_range{ "invalid iterators range" };
     }
