@@ -1,0 +1,7 @@
+#ifndef GLOBALCONSTANTS_HPP
+#define GLOBALCONSTANTS_HPP
+
+constexpr auto BITS_IN_BYTE = 8;
+constexpr auto COUNT_FREQUENCIES = 256;
+
+#endif // GLOBALCONSTANTS_HPP

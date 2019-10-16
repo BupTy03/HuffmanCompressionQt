@@ -281,6 +281,7 @@ private: // iterators
 
     public:
         explicit constexpr const_iterator_impl() = default;
+        ~const_iterator_impl() = default;
         explicit constexpr const_iterator_impl(const iterator_impl& other)
             : context_{ other.context_ }, index_{ other.index_ } {}
 
@@ -291,11 +292,11 @@ private: // iterators
             return *this;
         }
 
-        constexpr const_iterator_impl(const const_iterator_impl&) = default;
-        constexpr const_iterator_impl& operator=(const const_iterator_impl&) = default;
+        constexpr const_iterator_impl(const const_iterator_impl&) noexcept = default;
+        constexpr const_iterator_impl& operator=(const const_iterator_impl&) noexcept = default;
 
-        constexpr const_iterator_impl(const_iterator_impl&&) = default;
-        constexpr const_iterator_impl& operator=(const_iterator_impl&&) = default;
+        constexpr const_iterator_impl(const_iterator_impl&&) noexcept = default;
+        constexpr const_iterator_impl& operator=(const_iterator_impl&&) noexcept = default;
 
         constexpr const_iterator_impl& operator++() { ++index_; return *this; }
         constexpr const_iterator_impl operator++(int) { auto result = *this; ++(*this); return result; }

@@ -3,7 +3,6 @@
 
 #include <iostream>
 
-constexpr int BITS_IN_BYTE = 8;
 
 template<class T>
 void write(std::ostream& outputStream, const T& data)

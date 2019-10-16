@@ -2,17 +2,19 @@
 #define ISTREAMBITSITERATOR_HPP
 
 #include "utils.hpp"
+#include "globalconstants.hpp"
 
 #include <istream>
 #include <cassert>
 #include <memory>
+
 
 class IstreamBitsIterator : public std::iterator<std::input_iterator_tag,bool,std::ptrdiff_t, const bool*, const bool&>
 {
 public:
     using value_type = bool;
 
-    explicit IstreamBitsIterator() {}
+    explicit IstreamBitsIterator() = default;
     explicit IstreamBitsIterator(std::istream& is)
         : stream_{ &is }
         , state_{std::make_shared<current_state>()}
@@ -80,7 +82,7 @@ public:
         return *this;
     }
 
-    bool operator==(IstreamBitsIterator other) const
+    bool operator==(const IstreamBitsIterator& other) const
     {
         if (stream_ == nullptr || other.stream_ == nullptr) {
             return stream_ == other.stream_;
@@ -89,7 +91,7 @@ public:
         return stream_->tellg() == other.stream_->tellg() && state_->currBitIndex == other.state_->currBitIndex;
     }
 
-    bool operator!=(IstreamBitsIterator other) const { return !(*this == other); }
+    bool operator!=(const IstreamBitsIterator& other) const { return !(*this == other); }
 
     bool operator*() const
     {

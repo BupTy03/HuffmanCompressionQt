@@ -6,6 +6,7 @@
 #include <functional>
 #include <exception>
 
+
 class PackagedTask : public QObject
 {
     Q_OBJECT

@@ -9,10 +9,11 @@
 #include <algorithm>
 #include <iostream>
 
+
 using BytesBuffer = std::vector<std::uint8_t>;
 using BitsBuffer = bits_array<std::uint32_t>;
 using HuffmanDict = std::vector<BitsBuffer>;
-using CharFrequencies = std::array<std::size_t, 256>;
+using CharFrequencies = std::array<std::size_t, COUNT_FREQUENCIES>;
 
 struct HTreeNode {
     std::size_t weight = 0;
@@ -29,7 +30,7 @@ public: // types
     using NodeIDs = std::vector<int>;
 
 public:
-    explicit HTree() : huffmanDict_{256} {}
+    explicit HTree() : huffmanDict_{COUNT_FREQUENCIES} {}
     HuffmanDict huffmanDict() const { return huffmanDict_; }
 
     template<class It>
@@ -88,7 +89,7 @@ private:
     NodeIDs fillNodes(const CharFrequencies& frequencies);
     void clearNodes() { nodes_.clear(); }
 
-    void buildTree(const NodeIDs& freeNodes);
+    void buildTree(const NodeIDs& leafs);
     void buildHuffmanDictFromTree(HuffmanDict& dict, const NodeIDs& leafs);
 
 private:

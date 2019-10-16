@@ -1,24 +1,27 @@
 #ifndef BITS_UTILS_HPP
 #define BITS_UTILS_HPP
 
+#include "globalconstants.hpp"
+
 #include <type_traits>
+
 
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline bool get_bit(T bits, std::size_t index) noexcept
 {
-    return bits & (1 << ((8 * sizeof(T)) - index - 1));
+    return bits & (1 << ((BITS_IN_BYTE * sizeof(T)) - index - 1));
 }
 
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline T clear_bit(T bits, std::size_t index) noexcept
 {
-    return bits & (~(1 << ((8 * sizeof(T)) - index - 1)));
+    return bits & (~(1 << ((BITS_IN_BYTE * sizeof(T)) - index - 1)));
 }
 
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline T set_bit(T bits, std::size_t index, bool value) noexcept
 {
-    constexpr auto bits_count = 8 * sizeof(T);
+    constexpr auto bits_count = BITS_IN_BYTE * sizeof(T);
     bits &= (~(1 << (bits_count - index - 1))); // clear bit
     return bits | (value << (bits_count - index - 1)); // set bit
 }
@@ -63,7 +66,7 @@ constexpr T insert_bits(T bits, std::size_t index, std::size_t count, bool value
 template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline T insert_bits(T bits, std::size_t index, std::size_t count, bool value) noexcept
 {
-    constexpr auto bits_count = 8 * sizeof(T);
+    constexpr auto bits_count = BITS_IN_BYTE * sizeof(T);
     const auto last_inserted_index = index + count;
 
     constexpr T mask = ~0;
@@ -98,7 +101,7 @@ template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 constexpr inline T erase_bits(T bits, std::size_t index, std::size_t count) noexcept
 {
     constexpr T mask = ~0;
-    return (bits & (mask << ((8*sizeof(T)) - index))) | ((bits << count) & (mask >> index));
+    return (bits & (mask << ((BITS_IN_BYTE * sizeof(T)) - index))) | ((bits << count) & (mask >> index));
 }
 
 

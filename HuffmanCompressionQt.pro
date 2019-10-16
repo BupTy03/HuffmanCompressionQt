@@ -33,6 +33,7 @@ SOURCES += \
 HEADERS += \
         bits_array.hpp \
         bits_utils.hpp \
+        globalconstants.hpp \
         htree.hpp \
         huffmanencoding.hpp \
         istreambitsiterator.hpp \

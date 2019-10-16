@@ -7,6 +7,7 @@
 
 #include <memory>
 
+
 namespace Ui {
 class MainWindow;
 }
@@ -29,6 +30,13 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
+
+    MainWindow(const MainWindow&) = delete;
+    MainWindow& operator=(const MainWindow&) = delete;
+
+    MainWindow(MainWindow&&) = delete;
+    MainWindow& operator=(MainWindow&&) = delete;
+
     ~MainWindow() override;
 
     void dropEvent(QDropEvent* ev) override;

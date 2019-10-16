@@ -9,12 +9,13 @@
 #include <cassert>
 #include <iterator>
 
+
 void write_header(const HTree& tree, std::ostream& outputStream)
 {
     const auto& dict = tree.huffmanDict();
 
     // writing header
-    constexpr std::uint8_t huffHeader[] = {'H', 'A', 'F', 'F'};
+    constexpr std::array<std::uint8_t, 4> huffHeader = {'H', 'A', 'F', 'F'};
     std::copy(std::cbegin(huffHeader), std::cend(huffHeader), std::ostream_iterator<std::uint8_t>(outputStream));
 
     const auto hasCode = [](const BitsBuffer& bitCode){
@@ -106,7 +107,7 @@ void read_header(std::istream& inputStream, HTree& tree)
     }
 
     // fill dict
-    HuffmanDict dict(256);
+    HuffmanDict dict(COUNT_FREQUENCIES);
     auto it = std::cbegin(bits);
     for(const auto& entry : entries) {
         auto& currBitCode = dict.at(entry.symbol);

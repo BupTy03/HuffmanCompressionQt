@@ -4,6 +4,7 @@
 #include <cassert>
 #include <queue>
 
+
 void HTree::setHuffmanDict(const HuffmanDict& dict) { setHuffmanDict(HuffmanDict(dict)); }
 
 void HTree::setHuffmanDict(HuffmanDict&& dict)

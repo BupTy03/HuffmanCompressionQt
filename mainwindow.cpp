@@ -9,6 +9,7 @@
 #include <QDragEnterEvent>
 #include <QMimeData>
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -18,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setAcceptDrops(true);
 
-    QObject::connect(ui->exitPushButton, &QPushButton::clicked, qApp, &QApplication::exit);
+    QObject::connect(ui->exitPushButton, &QPushButton::clicked, QCoreApplication::instance(), &QCoreApplication::exit);
     QObject::connect(ui->fromViewPushButton, &QPushButton::clicked, [this] {
         ui->fromLineEdit->setText(QFileDialog::getOpenFileName(this));
     });

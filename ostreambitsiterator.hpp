@@ -7,6 +7,7 @@
 #include <memory>
 #include <cassert>
 
+
 class OstreamBitsIterator;
 
 namespace OstreamBitsIteratorImpl {
@@ -70,7 +71,7 @@ public:
         return retval;
     }
 
-    bool operator==(OstreamBitsIterator other) const
+    bool operator==(const OstreamBitsIterator& other) const
     {
         if (stream_ == nullptr || other.stream_ == nullptr) {
             return stream_ == other.stream_;
@@ -79,7 +80,7 @@ public:
         assert(state_ != nullptr);
         return stream_->tellp() == other.stream_->tellp() && state_->currBitIndex == other.state_->currBitIndex;
     }
-    bool operator!=(OstreamBitsIterator other) const { return !(*this == other); }
+    bool operator!=(const OstreamBitsIterator& other) const { return !(*this == other); }
 
     reference operator*() { return reference(this); }
 
@@ -95,7 +96,7 @@ private:
 };
 
 namespace OstreamBitsIteratorImpl {
-    reference_type& reference_type::operator=(bool value)
+    inline reference_type& reference_type::operator=(bool value)
     {
         context_->state_->currByte |= (value << (BITS_IN_BYTE - context_->state_->currBitIndex - 1));
         return *this;
