@@ -4,6 +4,8 @@
 #include <iostream>
 
 
+static_assert (sizeof(char) == sizeof(std::uint8_t), "");
+
 struct HuffmanHeader {
     std::uint8_t header[4]{'\0'}; // заголовок "HAFF"
     std::uint16_t count = 0;      // кол-во записей SymbolEntry

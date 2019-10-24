@@ -16,7 +16,7 @@ void write_header(const HTree& tree, std::ostream& outputStream)
 
     // writing header
     constexpr std::array<std::uint8_t, 4> huffHeader = {'H', 'A', 'F', 'F'};
-    std::copy(std::cbegin(huffHeader), std::cend(huffHeader), std::ostream_iterator<std::uint8_t>(outputStream));
+    std::copy(std::cbegin(huffHeader), std::cend(huffHeader), std::ostreambuf_iterator<char>(outputStream));
 
     const auto hasCode = [](const BitsBuffer& bitCode){
         return !bitCode.empty();
@@ -76,7 +76,7 @@ void compress_data(const HTree& tree, std::istream& inputStream, std::ostream& o
     outputStream.seekp(pos + std::ostream::off_type(1));
 
     OstreamBitsIterator outIt(outputStream);
-    const auto offset = tree.encodeBytes(std::istream_iterator<std::uint8_t>(inputStream), std::istream_iterator<std::uint8_t>(), outIt);
+    const auto offset = tree.encodeBytes(std::istreambuf_iterator<char>(inputStream), std::istreambuf_iterator<char>(), outIt);
     if(offset > 0) {
         outIt.flush();
     }
@@ -126,7 +126,7 @@ void decompress_data(const HTree& tree, std::istream& inputStream, std::ostream&
 
     // decoding data
     outputStream.unsetf(std::ios::skipws);
-    tree.decodeBits(IstreamBitsIterator(inputStream), IstreamBitsIterator(), std::ostream_iterator<std::uint8_t>(outputStream), offset);
+    tree.decodeBits(IstreamBitsIterator(inputStream), IstreamBitsIterator(), std::ostreambuf_iterator<char>(outputStream), offset);
 }
 
 
@@ -139,7 +139,7 @@ void compress_file(const std::string& from, const std::string& to)
     }
 
     HTree tree;
-    tree.setData(std::istream_iterator<std::uint8_t>(from_file), std::istream_iterator<std::uint8_t>());
+    tree.setData(std::istreambuf_iterator<char>(from_file), std::istreambuf_iterator<char>());
 
     std::ofstream to_file(to, std::ios::out | std::ios::binary);
     to_file.unsetf(std::ios::skipws);

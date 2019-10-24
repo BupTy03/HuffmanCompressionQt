@@ -2,6 +2,7 @@
 #define OSTREAMBITSITERATOR_HPP
 
 #include "utils.hpp"
+#include "globalconstants.hpp"
 
 #include <ostream>
 #include <memory>

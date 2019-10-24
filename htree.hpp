@@ -10,6 +10,8 @@
 #include <iostream>
 
 
+static_assert (sizeof(char) == sizeof(std::uint8_t), "");
+
 using BytesBuffer = std::vector<std::uint8_t>;
 using BitsBuffer = bits_array<std::uint32_t>;
 using HuffmanDict = std::vector<BitsBuffer>;
@@ -55,7 +57,7 @@ public:
     std::uint8_t encodeBytes(ByteIt first, ByteIt last, BitIt outFirst) const
     {
         for(; first != last; ++first) {
-            const auto& currBits = huffmanDict_.at(*first);
+            const auto& currBits = huffmanDict_.at(static_cast<std::uint8_t>(*first));
             std::copy(std::cbegin(currBits), std::cend(currBits), outFirst);
         }
 

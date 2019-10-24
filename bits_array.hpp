@@ -11,7 +11,7 @@
 
 
 template<typename T>
-using allowed_for_bits_container_type = std::enable_if_t<std::is_integral_v<T>>;
+using allowed_for_bits_container_type = std::enable_if_t<std::is_unsigned_v<T>>;
 
 template<typename InputIt>
 using has_iterator_type = std::enable_if_t<
