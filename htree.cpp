@@ -1,8 +1,9 @@
 #include "htree.hpp"
 
+#include "priority_queue.hpp"
+
 #include <algorithm>
 #include <cassert>
-#include <queue>
 
 
 void HTree::setHuffmanDict(const HuffmanDict& dict) { setHuffmanDict(HuffmanDict(dict)); }
@@ -83,10 +84,10 @@ void HTree::buildTree(const NodeIDs& leafs)
     assert(!leafs.empty());
 
     const auto comp = [this](const int left, const int right) {
-        return getNode(left).weight > getNode(right).weight;
+        return getNode(left).weight < getNode(right).weight;
     };
 
-    std::priority_queue<int, std::vector<int>, decltype(comp)> freeNodes(comp, leafs);
+    priority_queue<int, decltype(comp)> freeNodes(leafs.cbegin(), leafs.cend(), comp);
     while(freeNodes.size() > 1) {
         const int leftChildID = freeNodes.top();
         freeNodes.pop();

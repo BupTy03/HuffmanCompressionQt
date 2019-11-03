@@ -8,6 +8,7 @@
 #include <array>
 #include <algorithm>
 #include <iostream>
+#include <chrono>
 
 
 static_assert (sizeof(char) == sizeof(std::uint8_t), "");

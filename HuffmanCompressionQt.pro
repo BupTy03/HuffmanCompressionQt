@@ -38,8 +38,10 @@ HEADERS += \
         huffmanencoding.hpp \
         istreambitsiterator.hpp \
         mainwindow.hpp \
+        memory_facilities.hpp \
         ostreambitsiterator.hpp \
         packagedtask.hpp \
+        priority_queue.hpp \
         utils.hpp
 
 FORMS += \
